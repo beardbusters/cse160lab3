@@ -17,6 +17,10 @@ let u_whichTexture;
 let u_Sampler0;
 let u_Sampler1;
 
+let g_yaw = 0;          // radians
+let g_lastMouseX = null;
+let g_mouseDown = false;
+
 const g_staticCubes = [];
 
 const shapesList = [];
@@ -475,7 +479,8 @@ function renderAllShapes() {
   var globalRotMat = new Matrix4();
   globalRotMat.rotate(g_globalAngle, 0, 1, 0);   // yaw
   globalRotMat.rotate(g_globalAngleX, 1, 0, 0);  // pitch 
-  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
+  //gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
+  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, new Matrix4().elements);
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -619,7 +624,18 @@ function sendTextureToTEXTURE1(image) {
 }
 
 
+function updateCameraFromYaw() {
+  // keep the same distance from eye to at, just rotate in XZ
+  const dx = g_at[0] - g_eye[0];
+  const dz = g_at[2] - g_eye[2];
+  const dist = Math.hypot(dx, dz) || 1;
 
+  const nx = Math.sin(g_yaw) * dist;
+  const nz = Math.cos(g_yaw) * dist;
+
+  g_at[0] = g_eye[0] + nx;
+  g_at[2] = g_eye[2] + nz;
+}
 
 
 
@@ -632,6 +648,22 @@ function main() {
 
   //gl.clear(gl.COLOR_BUFFER_BIT);
   //renderAllShapes();
+  canvas.onmousedown = (e) => { g_mouseDown = true; g_lastMouseX = e.clientX; };
+  canvas.onmouseup   = () => { g_mouseDown = false; g_lastMouseX = null; };
+  canvas.onmouseleave= () => { g_mouseDown = false; g_lastMouseX = null; };
+
+  canvas.onmousemove = (e) => {
+    if (!g_mouseDown) return;
+
+    const dx = e.clientX - g_lastMouseX;
+    g_lastMouseX = e.clientX;
+
+    const sensitivity = 0.005;      // adjust feel
+    g_yaw += dx * sensitivity;
+
+    updateCameraFromYaw();
+    //renderAllShapes();
+  };
   /*
   canvas.onmousedown = click;
   // drag
