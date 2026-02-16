@@ -1,6 +1,6 @@
 // Florian Horn Sanders
 // fhornsan@ucsc.edu
-// cse160 winter 2026 asgn1
+// cse160 winter 2026 asgn3
 
 // WebGL globals (used by shape classes)
 let canvas;
